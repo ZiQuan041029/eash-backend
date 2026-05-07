@@ -54,6 +54,10 @@ class VisaVerificationController extends Controller
             'admin_note' => $request->input('admin_note'),
         ]);
 
+        if ($visaUpload->user) {
+            $visaUpload->user->update(['visa_status' => 'approved']);
+        }
+
         return response()->json(['ok' => true]);
     }
 
@@ -66,6 +70,10 @@ class VisaVerificationController extends Controller
             'approval_token_used_at' => null,
             'admin_note' => $request->input('admin_note'),
         ]);
+
+        if ($visaUpload->user) {
+            $visaUpload->user->update(['visa_status' => 'rejected']);
+        }
 
         return response()->json(['ok' => true]);
     }

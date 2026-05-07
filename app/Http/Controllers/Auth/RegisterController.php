@@ -18,40 +18,45 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', Password::defaults()],
-            'visa_approval_token' => ['required', 'string', 'min:20'],
+            'visa_upload_id' => ['nullable', 'integer'],
         ]);
 
-        $visa = VisaUpload::query()
-            ->where('approval_token_hash', hash('sha256', $validated['visa_approval_token']))
-            ->first();
+        $visa = null;
+        if (isset($validated['visa_upload_id'])) {
+            $visa = VisaUpload::query()->whereKey($validated['visa_upload_id'])->first();
+            if (!$visa) {
+                throw ValidationException::withMessages([
+                    'visa_upload_id' => ['Invalid visa upload. Please re-upload your visa.'],
+                ]);
+            }
+            if ($visa->user_id !== null) {
+                throw ValidationException::withMessages([
+                    'visa_upload_id' => ['This visa upload has already been linked to an account.'],
+                ]);
+            }
+        }
 
-        if (!$visa) {
-            throw ValidationException::withMessages([
-                'visa_approval_token' => ['Invalid visa approval token.'],
-            ]);
-        }
-        if ($visa->status !== 'approved') {
-            throw ValidationException::withMessages([
-                'visa_approval_token' => ['Visa has not been approved yet.'],
-            ]);
-        }
-        if ($visa->approval_token_used_at !== null) {
-            throw ValidationException::withMessages([
-                'visa_approval_token' => ['This visa approval token has already been used.'],
-            ]);
+        $visaStatus = 'none';
+        if ($visa !== null) {
+            $visaStatus = match ($visa->status) {
+                'approved' => 'approved',
+                'rejected' => 'rejected',
+                default => 'pending',
+            };
         }
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'visa_status' => 'approved',
+            'visa_status' => $visaStatus,
         ]);
 
-        $visa->update([
-            'user_id' => $user->id,
-            'approval_token_used_at' => now(),
-        ]);
+        if ($visa !== null) {
+            $visa->update([
+                'user_id' => $user->id,
+            ]);
+        }
 
         $token = $user->createToken('mobile')->plainTextToken;
 

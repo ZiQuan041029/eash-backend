@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\VisaVerificationController;
 use App\Http\Controllers\VisaGuestStatusController;
+use App\Http\Controllers\CurrentUserVisaController;
 use App\Http\Controllers\Upload\PresignedUploadController;
 use App\Http\Controllers\Upload\VisaGuestUploadController;
 
@@ -22,6 +23,8 @@ Route::post('/upload/visa', VisaGuestUploadController::class)->middleware('throt
 Route::post('/upload/presign', PresignedUploadController::class)->middleware(['auth:sanctum', 'throttle:30,1']);
 
 Route::get('/visa/status/{guestId}', VisaGuestStatusController::class)->middleware('throttle:120,1');
+
+Route::get('/visa/me', CurrentUserVisaController::class)->middleware(['auth:sanctum', 'throttle:120,1']);
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/visa-uploads', [VisaVerificationController::class, 'index']);

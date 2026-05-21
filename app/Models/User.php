@@ -19,7 +19,14 @@ class User extends Authenticatable
      *
      * (Some environments may not support Eloquent attribute-based Fillable/Hidden.)
      */
-    protected $fillable = ['name', 'email', 'password', 'is_admin', 'visa_status'];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'is_admin',
+        'visa_status',
+        'profile_photo_url',
+    ];
 
     protected $hidden = ['password', 'remember_token'];
 

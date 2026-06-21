@@ -21,5 +21,19 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => bcrypt('password'),
+                'is_admin' => true,
+            ],
+        );
+
+        $this->call([
+            AmenitySeeder::class,
+            RestaurantSeeder::class,
+        ]);
     }
 }

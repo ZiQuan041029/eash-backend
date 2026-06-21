@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\VisaVerificationController;
+use App\Http\Controllers\Admin\AmenityController as AdminAmenityController;
+use App\Http\Controllers\Admin\RestaurantController as AdminRestaurantController;
+use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\VisaGuestStatusController;
 use App\Http\Controllers\CurrentUserVisaController;
 use App\Http\Controllers\Upload\PresignedUploadController;
@@ -28,9 +31,16 @@ Route::get('/visa/status/{guestId}', VisaGuestStatusController::class)->middlewa
 
 Route::get('/visa/me', CurrentUserVisaController::class)->middleware(['auth:sanctum', 'throttle:120,1']);
 
+// Public browse (app).
+Route::get('/restaurants', [RestaurantController::class, 'index'])->middleware('throttle:120,1');
+Route::get('/restaurants/{restaurant}', [RestaurantController::class, 'show'])->middleware('throttle:120,1');
+
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/visa-uploads', [VisaVerificationController::class, 'index']);
     Route::get('/visa-uploads/{visaUpload}', [VisaVerificationController::class, 'show']);
     Route::post('/visa-uploads/{visaUpload}/approve', [VisaVerificationController::class, 'approve']);
     Route::post('/visa-uploads/{visaUpload}/reject', [VisaVerificationController::class, 'reject']);
+
+    Route::apiResource('amenities', AdminAmenityController::class)->except(['show']);
+    Route::apiResource('restaurants', AdminRestaurantController::class);
 });
